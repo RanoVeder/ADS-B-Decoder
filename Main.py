@@ -10,7 +10,7 @@ import pygame
 
 
 
-def render(screen):
+def render():
 	pygame.display.flip()
 def update():
 	return
@@ -48,7 +48,7 @@ while True:
 		TickTime+=1000/30.
 
 	if(ElapsedTime >= RenderTime):
-		render(screen,Frames)
+		render()
 		Frames+=1
 		FPScounter+=1
 		RenderTime+=1000/60.
