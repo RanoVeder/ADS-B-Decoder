@@ -1,63 +1,95 @@
-import pygame
-
-####
-(width,height) = (1080,720)
-
-
-
-
-###
+from Recieve import *
+from Decode import *
+from Aircraft_Class import Aircraft
+import GUI
+import threading
 
 
 
-def render():
-	pygame.display.flip()
-def update():
-	return
+total = 0
+total17 = 0
+Aircraft_List = {}
+Json_To_Send = []
+
+def Process_Sample(samples, rtlsdr_obj):
+
+	samples = Shift_Samples(samples)						#Shift the samples back to original 1090Mhz
+	samples = np.real(samples)**2 + np.imag(samples)**2		#Convert from Complex Data to Mag^2
+	packets = Extract_ModeS_Packets(samples)				#Get all the Mode-S Packets from the Sample
+
+	global total,total17,Json_To_Send, Aircraft_List
+
+	for packet in packets:
+
+		Binary_String = Sample_To_Binary(packet)
+
+		if(not Binary_String[0] == '2'):
+			if (Check_DF(Binary_String) == 17):
+
+				Decoded_Packet = Decode_DF17(Binary_String)
+
+				if(Decoded_Packet[1] == -2):
+					continue
+
+				for unit in Aircraft_List:
+					if(Differ_By_1(Aircraft_List[unit].ICAO24,Decoded_Packet[0]) and Aircraft_List[unit].Counter >= 3):
+
+						Decoded_Packet = (Aircraft_List[unit].ICAO24,) + Decoded_Packet[1:]
+						break
 
 
-pygame.init()
+				if Aircraft_List.has_key(Decoded_Packet[0]):
 
-screen = pygame.display.set_mode((width,height))
-pygame.display.flip()
-pygame.display.set_caption("Project 1")
+					instance = Aircraft_List[Decoded_Packet[0]] #Get the 'Aircraft_Class' object
+					instance.Update(Decoded_Packet)				#Update the object with new values
+					instance.UpdateCounter()					#Update the counter of the object
+					instance.UpdatePosition()					#Update the position of the object
+		
+					Aircraft_List.update({Decoded_Packet[0]: instance}) #Overwrite previous 'Aircraft_Class' object
+				else:
+					New_Aircraft = Aircraft(Decoded_Packet)					#create new 'Aircraft_Class' object
+					Aircraft_List.update({Decoded_Packet[0]: New_Aircraft})	#update Aircraft_List with new plane
+				total17+=1
+
+		total+=1
+
+	Json_To_Send = []
+
+	for i in Aircraft_List:
+		if(Aircraft_List[i].Counter >= 3):
+
+			Json_To_Send.append({"ICAO24":Aircraft_List[i].ICAO24,"ICAO":Aircraft_List[i].ICAO,"ALT":Aircraft_List[i].ALT,"Speed":Aircraft_List[i].Speed,"Heading":Aircraft_List[i].Heading,"Lat":Aircraft_List[i].Lat,"Lon":Aircraft_List[i].Lon})
+
+	Json_To_Send = json.dumps(Json_To_Send)
+	f = open("GUI/data/planes.json", 'w')
+	f.truncate()
+	f.write(Json_To_Send)
+	f.close
+	
+
+	os.system('clear')
 
 
-PastTime  = pygame.time.get_ticks() 
-TickTime = 1000/30.
-RenderTime = 1000/60.
-second = 1000
-FPS = 0
-FPScounter = 0
-Ticks = 0
-Frames = 0
+	print "#####################"
+	for i in Aircraft_List:
+		if(Aircraft_List[i].Counter >= 3):
+			print "ICAO24: ", Aircraft_List[i].ICAO24,"\t ICAO: ", Aircraft_List[i].ICAO, "\t Speed: ", Aircraft_List[i].Speed, "\t Alt: ", Aircraft_List[i].ALT, "\t Lat: ",Aircraft_List[i].Lat, "\t Lon: ",Aircraft_List[i].Lon
+	print "#####################"
+	print "Planes: ",len(Aircraft_List),"\t Total Messages: ",total,"\t Total DF17:", total17
+	print "#####################"
 
-while True:
 
-	for event in pygame.event.get():
-		if (event.type == pygame.QUIT):
-			print("Exiting")
-			exit()
+#Clear Json File
+f = open("GUI/data/planes.json", 'w')
+f.truncate()
+f.close()
 
-	CurrentTime = pygame.time.get_ticks()
-	ElapsedTime = CurrentTime - PastTime
 
-	if (ElapsedTime >= TickTime):
-		update()
-		Ticks+=1
-		TickTime+=1000/30.
+thread1 = threading.Thread(name='Init_SDR',target=Init_SDR, args=(Process_Sample,))
 
-	if(ElapsedTime >= RenderTime):
-		render()
-		Frames+=1
-		FPScounter+=1
-		RenderTime+=1000/60.
+thread1.start()
 
-	if(ElapsedTime >= second):
-		print "Frames per Second: ",FPScounter," ## Ticks_Per_Second:",Ticks/30.
-		FPS = FPScounter
-		second+=1000	
-		FPScounter = 0
-
+GUI.Init_Server()
+GUI.Init_GUI()
 
 

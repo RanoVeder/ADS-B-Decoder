@@ -64,8 +64,7 @@ def Init_SDR(callback):
 	try:
 		sdr = RtlSdr()	#Initialize the RTL Dongle
 	except:
-		print "Couldn't find RTL2832U!"
-		os._exit(1)												
+		print "Couldn't find RTL2832U!"													
 		sys.exit(0)
 
 	sdr.sample_rate = BASE_SAMPLES  								#Set the Sample Rate for Dongle
@@ -80,7 +79,6 @@ def Init_SDR(callback):
 		sdr.read_samples_async(callback,BASE_SAMPLEAMOUNT)		#Start Capturing Samples Asynchronously
 	except:
 		print "Problem with RTL2832U, Please Restart"
-		os._exit(1)
 	return
 
 
