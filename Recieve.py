@@ -70,7 +70,7 @@ def Init_SDR(callback):
 
 	sdr.sample_rate = BASE_SAMPLES  								#Set the Sample Rate for Dongle
 	sdr.center_freq = BASE_FEQ
-	sdr.set_freq_correction = 130     								#Set the Frequency for Dongle
+	sdr.set_freq_correction(130)     								#Set the Frequency for Dongle
 	sdr.gain = 49.6
 	
 	print "Frequency Set To: ",sdr.get_center_freq()
@@ -95,50 +95,36 @@ def Extract_ModeS_Packets(samples):
 
 	for i in range(len(samples) - (112*2 + 8*2) -1):									#Loop Through each index in 'samples' and check if that's the start of a preamble
 
-		highval = (samples[i] + samples[i+2] + samples[i+7] + samples[i+9])/float(6)	#Set The 
+		highval = (samples[i] + samples[i+2] + samples[i+7] + samples[i+9])/float(4)	#Set The 
 	
-		if(samples[i] > samples[i+1] and    \
-			samples[i+1] < samples[i+2] and  \
-			samples[i+2] > samples[i+3] and  \
-			samples[i+3] < samples[i] and    \
-			samples[i+4] < samples[i] and    \
-			samples[i+5] < samples[i] and    \
-			samples[i+6] < samples[i] and    \
-			samples[i+6] < samples[i+7] and  \
-			samples[i+7] > samples[i+8] and  \
-			samples[i+8] < samples[i+9] and  \
-			samples[i+9] > samples[i+10] and \
-			samples[i+10] < samples[i] and   \
-			samples[i+11] < samples[i] and   \
-			samples[i+12] < samples[i] and   \
-			samples[i+13] < samples[i] and   \
-			samples[i+14] < samples[i] and   \
-			samples[i+15] < samples[i]):
-				 
-					
-				if(samples[i+1] > highval or   \
-					# samples[i+3] > highval or   \
-					samples[i+4] > highval or   \
-					samples[i+5] > highval or   \
-					# samples[i+6] > highval or   \
-					samples[i+8] > highval or   \
-					# samples[i+10] > highval or  \
-					samples[i+11] > highval or  \
-					samples[i+12] > highval or  \
-					samples[i+13] > highval or  \
-					samples[i+14] > highval or  \
-					samples[i+15] > highval):
-						continue
+		if(samples[i] > samples[i+1] and\
+			samples[i+1] < samples[i+2] and\
+			samples[i+1] < highval and\
+			samples[i+2] > samples[i+3] and\
+			samples[i+3] < highval and\
+			samples[i+4] < highval and\
+			samples[i+5] < highval and\
+			samples[i+6] < highval and\
+			samples[i+6] < samples[i+7] and\
+			samples[i+7] > samples[i+8] and\
+			samples[i+8] < samples[i+9] and\
+			samples[i+8] < highval and\
+			samples[i+9] > samples[i+10] and\
+			samples[i+10] < highval and\
+			samples[i+11] < highval and\
+			samples[i+12] < highval and\
+			samples[i+13] < highval and\
+			samples[i+14] < highval and\
+			samples[i+15] < highval):
 
-				packet = []
-				
-				for k in range(0,112*2 + 8*2):
+			packet = []
+			
+			for k in range(0,112*2 + 8*2):
 
-					packet.append(samples[i+k])
+				packet.append(samples[i+k])
 
+			packets.append(packet)
 
-
-				packets.append(packet)
 	return packets
 
 
