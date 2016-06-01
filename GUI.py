@@ -9,6 +9,9 @@ def Init_Server():
     PATH = os.path.abspath(os.path.dirname(__file__))
     class Root(object): pass
 
+    logger = cherrypy.log.access_log
+    logger.removeHandler(logger.handlers[0])
+
     cherrypy.tree.mount(Root(), '/', config={
             '/': {
                     'tools.staticdir.on': True,

@@ -9,7 +9,7 @@ import json
 import sys
 BASE_STATION = int(1090e6) 				#Frequency of ADS-B Signals
 BASE_SAMPLES = 2000000					#Amount of Samples per Second
-BASE_SHIFT = 200000				#Shift of Frequency, Because of DC Spike
+BASE_SHIFT = 0				#Shift of Frequency, Because of DC Spike
 BASE_FEQ = BASE_STATION - BASE_SHIFT	#New Frequency with Shift
 BASE_SAMPLEAMOUNT = 32000*16	#Samples taken before calling The CallBack Function
 
@@ -22,8 +22,7 @@ BASE_SAMPLEAMOUNT = 32000*16	#Samples taken before calling The CallBack Function
 def Plot_Samples(samples):
 	l = []
 	for i in samples:
-		for j in i:
-			l.append(j)
+		l.append(i)
 
 	plt.plot(l)
 	plt.show()
@@ -31,6 +30,13 @@ def Plot_Samples(samples):
 def Plot_FFT(samples):
 	plt.specgram(samples)
 	plt.show()
+
+
+def BinString_Saver(binstring):
+	f = open('DATA.txt', 'a')
+	f.write(binstring +' '+ Binary_To_Hex(binstring[8:32]) + '\n')
+	f.close()
+
 
 #################################################################
 
@@ -65,8 +71,8 @@ def Init_SDR(callback):
 		sdr = RtlSdr()	#Initialize the RTL Dongle
 	except:
 		print "Couldn't find RTL2832U!"
-		os._exit(1)												
-		sys.exit(0)
+		# os._exit(1)												
+		# sys.exit(0)
 
 	sdr.sample_rate = BASE_SAMPLES  								#Set the Sample Rate for Dongle
 	sdr.center_freq = BASE_FEQ
@@ -96,7 +102,11 @@ def Extract_ModeS_Packets(samples):
 	for i in range(len(samples) - (112*2 + 8*2) -1):									#Loop Through each index in 'samples' and check if that's the start of a preamble
 
 		highval = (samples[i] + samples[i+2] + samples[i+7] + samples[i+9])/float(4)	#Set The 
-	
+		
+		if(highval < 0.05):
+			continue
+
+
 		if(samples[i] > samples[i+1] and\
 			samples[i+1] < samples[i+2] and\
 			samples[i+1] < highval and\

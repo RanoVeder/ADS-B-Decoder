@@ -34,10 +34,11 @@ class Aircraft:
 	Counter = 0
 	Last_Pos = ''   #"ODD" or "EVEN"
 	Passed = False
+	Last_Time = 0
 
 
 
-	def __init__(self, tuple):
+	def __init__(self, tuple,time):
 		 
 		#index1 , 1:ICAO, 2:latlon, 3:Speed,Heading
 		if(tuple[1] == 'ICAO'):
@@ -59,13 +60,13 @@ class Aircraft:
 		elif(tuple[1] == "Speed/Heading"):
 			self.Speed = tuple[2]
 			self.Heading = tuple[3]
-		elif(tuple[1] == -1):
-			print 'meh'
+
 
 		self.ICAO24 = tuple[0]
 		self.Counter += 1
+		self.Last_Time = time
 
-	def Update(self,tuple):
+	def Update(self,tuple,time):
 		#index1 , 1:ICAO, 2:latlon, 3:Speed,Heading
 		if(tuple[1] == 'ICAO'):
 			self.ICAO = tuple[2]
@@ -86,8 +87,10 @@ class Aircraft:
 		elif(tuple[1] == "Speed/Heading"):
 			self.Speed = tuple[2]
 			self.Heading = tuple[3]
-		elif(tuple[1] == -1):
-			print 'meh'
+
+
+		self.Last_Time = time
+
 
 	def UpdateCounter(self):
 		self.Counter += 1

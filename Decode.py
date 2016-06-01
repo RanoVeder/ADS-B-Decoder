@@ -4,8 +4,6 @@ Mode_S_Preamble_Length = 8
 Mode_S_Data_Length = 112
 
 
-
-
 def Sample_To_Binary(sample):
 	binary_string = ''
 
@@ -30,6 +28,25 @@ def Binary_To_Hex(binstring):
 def Check_DF(binstring):
 	return int(binstring[0:5],2)
 
+def paritycheck(binarystring):
+    poly = '111111111111010000001001'                              #CRC generator polynomial
+    i = 23
+    register = binarystring[0:24]                               # register of 24 bits, starting value
+
+    # while loop which computes remainder of division of binary string by generator polynomial using CRC arithmetic
+
+    while i < len(binarystring)-1:
+        pop = register[:1]                                  # bit which is 'popped' out of the register
+        i +=1
+        register = register[1:24]+binarystring[i]     # shifts register to the right
+        if  pop == '1':                                     # if a 1 is 'popped' out, we know that the current register is divisible by the gen. polynomial
+            register = '{0:0{1}b}'.format(int(register,2)^int(poly,2),24)         # fills register with remainder, uses XOR to find remainder
+ 
+
+    if '1' in register:                                     # if '1' in final register, remainder is not equal to zero and message is corrupted
+        return False
+    else:
+        return True
 
 def Decode_DF17(binstring):
 	CA = binstring[5:8]
@@ -40,7 +57,7 @@ def Decode_DF17(binstring):
 	ICAO24_HEX = Binary_To_Hex(ICAO24)
 
 	num_TC = int(TC,2)
-	# print num_TC
+
 	if (1 <= num_TC <= 4):  #ICAO 
 		ICAO = ''
 		Data_Offset = 8
@@ -61,12 +78,13 @@ def Decode_DF17(binstring):
 		ICAO += Mapping[index]
 		index = int(DATA[Data_Offset+42:Data_Offset+48],2)
 		ICAO += Mapping[index]
-		# print ICAO24_HEX, ICAO, "ICAO"
 
-		if(ICAO.count('#') >=1):
+		if(ICAO.count('#') >=1): #Error Catch
 			return (ICAO24_HEX,-2)
+
 		return (ICAO24_HEX,"ICAO",ICAO.strip('_'))
-	elif (9 <= num_TC <= 18):
+
+	elif (9 <= num_TC <= 18): #Position
 
 		EVEN = 0
 		ODD = 1
@@ -87,21 +105,13 @@ def Decode_DF17(binstring):
 		else:
 			H = ALT * 25 - 1000
 
-		
-		# print ICAO24_HEX,H,"Height
-
-		# return (ICAO24_HEX,"Height", H)
-
 		if(F == EVEN):
 			return (ICAO24_HEX,"EVEN",LAT_CPR,LON_CPR,H)
 			
 		elif(F == ODD):
 			return (ICAO24_HEX,"ODD",LAT_CPR,LON_CPR,H)
 
-
-		
-
-	elif (num_TC == 19):
+	elif (num_TC == 19): #Speed/Heading
 		Data_Offset = 5
 		SubType = int(DATA[Data_Offset+0:Data_Offset+3],2)
 		IC = int(DATA[Data_Offset+3],2)
@@ -118,12 +128,9 @@ def Decode_DF17(binstring):
 		S_DIF = int(DATA[Data_Offset+43],2)
 		DIF = int(DATA[Data_Offset+44:Data_Offset+51],2)
 		
-		# print ICAO24_HEX,V_WE,V_NS, "SPeeds"
-
 		if(V_WE == 0 or V_NS == 0):
 	
 			return(ICAO24_HEX,-2)
-
 
 		if(S_WE == 0):
 			S_WE = -1
@@ -134,11 +141,12 @@ def Decode_DF17(binstring):
 			V_WE *= S_WE
 			V_NS *= S_NS
 
-
 			Speed = int(sqrt(V_WE ** 2 + V_NS ** 2))
 			
 			Heading = -1 * atan2(V_NS,V_WE) * (360/(2*pi)) + 90
+
 			return (ICAO24_HEX,"Speed/Heading",Speed,Heading)
+
 	else:
 		return (ICAO24_HEX,-2)
 

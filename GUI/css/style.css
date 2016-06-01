@@ -12,9 +12,10 @@
 	width:380px;
 	margin: 0;
 	margin-left: -4px;
-	background-color: #1F2B38;
+	background-color: #2574A9;
 	display: inline-block;
 	vertical-align: top;
+
 }
 
 
@@ -43,12 +44,18 @@
 .aircraft{
 	margin:0;
 	width:380px;
-	height: 120px;
-	border-bottom: 1px #1F2B38 solid;
-	background-color: #2C3E50;
+	height: 70px;
+	border-bottom: 1px #EEEEEE solid;
+	background-color: #EEEEEE;
 	display: inline-block;
 
 }
+
+.selected{
+
+	background-color: blue;
+}
+
 
 
 .aircraft:hover{
@@ -78,15 +85,14 @@
 }
 
 .aircraft_info{
-	float:right;
 	position: relative;
-	width: 300px;
-	height: 120px;
+	width: 380px;
+	height: 70px;
 
 }
 
 .aircraft_info *{
-	color: #1abc9c;
+	color: #2574A9;
 }
 
 
@@ -100,15 +106,15 @@
 .ALT{
 	font-size: 15px;
 	position: absolute;
-	top:40px;
-	left:30px;
+	top: 10px;
+	left:150px;
 }
 
 .Speed{
 	font-size: 15px;
 	position: absolute;
-	top:60px;
-	left:30px;
+	top:30px;
+	left:150px;
 }
 
 body{
