@@ -1,7 +1,5 @@
 from rtlsdr import *
 import numpy as np
-import matplotlib.pyplot as plt
-import scipy.signal as signal
 from Decode import *
 from Aircraft_Class import Aircraft
 import os
@@ -9,8 +7,6 @@ import json
 import sys
 BASE_STATION = int(1090e6) 				#Frequency of ADS-B Signals
 BASE_SAMPLES = 2000000					#Amount of Samples per Second
-BASE_SHIFT = 0				#Shift of Frequency, Because of DC Spike
-BASE_FEQ = BASE_STATION - BASE_SHIFT	#New Frequency with Shift
 BASE_SAMPLEAMOUNT = 32000*16	#Samples taken before calling The CallBack Function
 
 
@@ -18,18 +14,6 @@ BASE_SAMPLEAMOUNT = 32000*16	#Samples taken before calling The CallBack Function
 ###                                                            ###
 ###                                                            ### 
 #########################Debug Functions##########################
-
-def Plot_Samples(samples):
-	l = []
-	for i in samples:
-		l.append(i)
-
-	plt.plot(l)
-	plt.show()
-
-def Plot_FFT(samples):
-	plt.specgram(samples)
-	plt.show()
 
 
 def BinString_Saver(binstring):
@@ -43,24 +27,31 @@ def BinString_Saver(binstring):
 ####################UTILITY FUNCTIONS############################
 
 
-def Shift_Samples(samples):
+def Brute_Force_Errors(binstring):
+	fixed1 = 0
+	fixed2 = 0
+	Error_Counter = binstring.count('2')
 
-	samples = np.array(samples).astype('complex64')										#Specify Numpy Array for the Complex Samples
-	shift = np.exp(-1.0j*2.0*np.pi* BASE_SHIFT/BASE_SAMPLES*np.arange(len(samples)))	#Shift the Samples (https://en.wikipedia.org/wiki/Discrete_Fourier_transform)
-	samples = samples * shift 															#Update 'samples' with the Shifted Samples
-	return samples
+	if(Error_Counter > 2):
+		return False
 
-def Differ_By_1(str1,str2):
+	elif(Error_Counter == 1): 
+		binstring = Brute_Force_One(binstring)
+		if(binstring == False):
+			return False
+		fixed1+=1
 
-	if len(str1) == len(str2):
-	    count_diffs = 0
-	    for a, b in zip(str1, str2):
-	        if a!=b:
-	            count_diffs += 1
-	            if count_diffs > 1:
-	            	return False
+	elif(Error_Counter == 2):
+		binstring = Brute_Force_Two(binstring)
+		if(binstring == False):
+			return False
+		fixed2+=1
 
-	    return True
+
+	return (binstring,fixed1,fixed2)
+
+
+
 
 
 ################################################################
@@ -71,11 +62,11 @@ def Init_SDR(callback):
 		sdr = RtlSdr()	#Initialize the RTL Dongle
 	except:
 		print "Couldn't find RTL2832U!"
-		# os._exit(1)												
+		os._exit(1)												
 		# sys.exit(0)
 
 	sdr.sample_rate = BASE_SAMPLES  								#Set the Sample Rate for Dongle
-	sdr.center_freq = BASE_FEQ
+	sdr.center_freq = BASE_STATION
 	sdr.set_freq_correction(130)     								#Set the Frequency for Dongle
 	sdr.gain = 49.6
 	

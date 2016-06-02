@@ -11,11 +11,7 @@ def NLC(lat):
 	nl = 2 * math.pi / (math.acos(1 - a/b))
 	return int(nl)
 
-def ModFunc(a,b):
-	res = a%b
-	if (res<0):
-		res+=b
-	return res
+
 
 
 
@@ -113,8 +109,8 @@ class Aircraft:
 		Lat_Even_Rel = 360/60.
 		Lat_Odd_Rel = 360/59.
 
-		Lat_Even_F = Lat_Even_Rel * ((ModFunc(Lat_Index,60)) + Lat_Even_Dec)
-		Lat_Odd_F = Lat_Odd_Rel * ((ModFunc(Lat_Index,59)) + Lat_Odd_Dec)
+		Lat_Even_F = Lat_Even_Rel * (((Lat_Index%60)) + Lat_Even_Dec)
+		Lat_Odd_F = Lat_Odd_Rel * (((Lat_Index%59)) + Lat_Odd_Dec)
 		if(Lat_Even_F >= 270):
 			Lat_Even_F -= 360
 		if(Lat_Odd_F >= 270):
@@ -129,7 +125,7 @@ class Aircraft:
 			if(ni<1):
 				ni = 1
 			Lon_Index = math.floor(Lon_Even_Dec*(NL-1)-Lon_Odd_Dec*NL + 0.5)
-			Lon_F = (360./ni)*(ModFunc(Lon_Index,ni)+Lon_Even_Dec)
+			Lon_F = (360./ni)*((Lon_Index%ni)+Lon_Even_Dec)
 
 			if(Lon_F >= 180):
 				Lon_F -= 360
@@ -144,7 +140,7 @@ class Aircraft:
 			if(ni<1):
 				ni = 1
 			Lon_Index = math.floor(Lon_Even_Dec*(NL-1)-Lon_Odd_Dec*NL + 0.5)
-			Lon_F = (360/ni)*(ModFunc(Lon_Index,ni)+Lon_Odd_Dec)
+			Lon_F = (360/ni)*((Lon_Index%ni)+Lon_Odd_Dec)
 			
 			if(Lon_F > 180):
 				Lon_F -= 360

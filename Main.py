@@ -9,6 +9,8 @@ from time import clock
 
 total = 0
 total17 = 0
+fixed1 = 0
+fixed2 = 0
 Aircraft_List = {}
 Json_To_Send = []
 
@@ -19,36 +21,46 @@ def Process_Sample(samples, rtlsdr_obj):
 	# Plot_Samples(samples.tolist())
 	packets = Extract_ModeS_Packets(samples)				#Get all the Mode-S Packets from the Sample
 
-	global total,total17,Json_To_Send, Aircraft_List
+	global total,total17,Json_To_Send, Aircraft_List,fixed1,fixed2
+
 	curtime = clock()
 	for packet in packets:
 
 		Binary_String = Sample_To_Binary(packet)
 
-		if(not Binary_String[0] == '2'):   #If a 2 is returned, the message didn't convert correctly from samples to a binary string
-			if (Check_DF(Binary_String) == 17):
+		Error_Tuple = Brute_Force_Errors(Binary_String)
+		if(Error_Tuple == False):
+			continue
+		Binary_String = Error_Tuple[0]
+		fixed1+=Error_Tuple[1]
+		fixed2+=Error_Tuple[2]
 
-				total17+=1
+		if(Binary_String == False):
+			continue
 
-				if(not paritycheck(Binary_String)):
-					continue
+		if (Check_DF(Binary_String) == 17):
 
-				Decoded_Packet = Decode_DF17(Binary_String)
+			total17+=1
 
-				if(Decoded_Packet[1] == -2):
-					continue
+			if(not paritycheck(Binary_String)):
+				continue
 
-				if Aircraft_List.has_key(Decoded_Packet[0]):
+			Decoded_Packet = Decode_DF17(Binary_String)
 
-					instance = Aircraft_List[Decoded_Packet[0]] #Get the 'Aircraft_Class' object
-					instance.Update(Decoded_Packet,curtime)				#Update the object with new values
-					instance.UpdateCounter()					#Update the counter of the object
-					instance.UpdatePosition()					#Update the position of the object
-					Aircraft_List.update({Decoded_Packet[0]: instance}) #Overwrite previous 'Aircraft_Class' object
-				else:
-					New_Aircraft = Aircraft(Decoded_Packet,curtime)					#create new 'Aircraft_Class' object
-					Aircraft_List.update({Decoded_Packet[0]: New_Aircraft})	#update Aircraft_List with new plane
-				
+			if(Decoded_Packet[1] == -2):
+				continue
+
+			if Aircraft_List.has_key(Decoded_Packet[0]):
+
+				instance = Aircraft_List[Decoded_Packet[0]] #Get the 'Aircraft_Class' object
+				instance.Update(Decoded_Packet,curtime)				#Update the object with new values
+				instance.UpdateCounter()					#Update the counter of the object
+				instance.UpdatePosition()					#Update the position of the object
+				Aircraft_List.update({Decoded_Packet[0]: instance}) #Overwrite previous 'Aircraft_Class' object
+			else:
+				New_Aircraft = Aircraft(Decoded_Packet,curtime)					#create new 'Aircraft_Class' object
+				Aircraft_List.update({Decoded_Packet[0]: New_Aircraft})	#update Aircraft_List with new plane
+			
 
 		total+=1
 
@@ -70,15 +82,16 @@ def Process_Sample(samples, rtlsdr_obj):
 
 	os.system('clear')
 	print "#####################"
+	print "ICAO24\t\tICAO\tSpeed\tHeading\tAlt\tLat\tLon\tTime" 
 	for i in Aircraft_List:
 		if(curtime - Aircraft_List[i].Last_Time > 60):
 			Aircraft_List.pop(i, None)
 			continue
 
 		if(Aircraft_List[i].Counter >= 1):
-			print "ICAO24: ", Aircraft_List[i].ICAO24,"\t ICAO: ", Aircraft_List[i].ICAO, "\t Speed: ", Aircraft_List[i].Speed, "\t Alt: ", Aircraft_List[i].ALT, "\t Lat: ",Aircraft_List[i].Lat, "\t Lon: ",Aircraft_List[i].Lon, "\t time: ",curtime - Aircraft_List[i].Last_Time
+			print Aircraft_List[i].ICAO24,"\t", Aircraft_List[i].ICAO, "\t", Aircraft_List[i].Speed,"\t", int(Aircraft_List[i].Heading)  ,"\t", Aircraft_List[i].ALT, "\t", round(Aircraft_List[i].Lat,3), "\t",round(Aircraft_List[i].Lon,3), "\t",60 - int(curtime - Aircraft_List[i].Last_Time)
 	print "#####################"
-	print "Planes: ",len(Aircraft_List),"\t Total Messages: ",total,"\t Total DF17:", total17
+	print "Planes: ",len(Aircraft_List),"\t Total Messages: ",total,"\t Total DF17:", total17, "\t Fixed Messages: ", fixed1,fixed2
 	print "#####################"
 
 

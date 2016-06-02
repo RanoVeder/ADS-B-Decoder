@@ -15,7 +15,7 @@ $(document).ready(function(){
             if(result == 0){
               return;
             }else{
-              map.setZoom(12);
+              map.setZoom(10);
               map.panTo(result[0].value.position);
               $('.aircraft').removeClass("selected")
               $(this).addClass("selected")
@@ -35,12 +35,26 @@ function Init_Map(){
 
 // When the window has finished loading create our google map below
 
-
+        
         // Basic options for a simple Google Map
         // For more options see: https://developers.google.com/maps/documentation/javascript/reference#MapOptions
         var mapOptions = {
             // How zoomed in you want the map to start at (always required)
             zoom: 8,
+            styles: [
+                    {
+                        "featureType": "all",
+                        "elementType": "all",
+                        "stylers": [
+                            {
+                                "saturation": "-79"
+                            },
+                            {
+                                "lightness": "-27"
+                            }
+                        ]
+                    }
+                  ],
 
             // The latitude and longitude to center the map (always required)
             center: new google.maps.LatLng(52.3700, 5),
@@ -66,6 +80,7 @@ function Init_Map(){
 var SeenPlanes = []
 setInterval(function() {
 $.getJSON('../data/planes.json', function(data) {
+      
     
     	console.log(markers);
 
@@ -130,9 +145,14 @@ function Icon(str){
   var icon = {
 
     /*url: '../img/airplane2.svg',*/
-    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-    scale: 5,
-    strokeColor: "#1abc9c",
+    path: 'M362.985,430.724l-10.248,51.234l62.332,57.969l-3.293,26.145 l-71.345-23.599l-2.001,13.069l-2.057-13.529l-71.278,22.928l-5.762-23.984l64.097-59.271l-8.913-51.359l0.858-114.43 l-21.945-11.338l-189.358,88.76l-1.18-32.262l213.344-180.08l0.875-107.436l7.973-32.005l7.642-12.054l7.377-3.958l9.238,3.65 l6.367,14.925l7.369,30.363v106.375l211.592,182.082l-1.496,32.247l-188.479-90.61l-21.616,10.087l-0.094,115.684',
+    scale: 0.05,
+    scaledSize: new google.maps.Size(1,1),
+    anchor: new google.maps.Point(0.5, 0.5),
+    strokeOpacity: 1,
+    color: '#f8c023',
+    strokeWeight: 1,
+    fillOpacity: 1,
     rotation: str.Heading
   }
   return icon
@@ -144,14 +164,20 @@ function Add_Marker(str) {
   iconn = Icon(str)
 
   var marker = new google.maps.Marker({
+
     position: new google.maps.LatLng(str.Lat,str.Lon),
     icon: iconn,
     map: map,
     title: str.ICAO,
+    ICAO24: str.ICAO24
   });
 
   marker.addListener('click', function(e) {
-    alert('test')
+    $('.aircraft').removeClass("selected")
+    map.setZoom(10);
+    map.setCenter(marker.getPosition());
+    $('#'+list[marker.ICAO24]).addClass('selected')
+
   });
   markers.push({key: str.ICAO24,
   				value: marker

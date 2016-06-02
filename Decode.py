@@ -16,10 +16,45 @@ def Sample_To_Binary(sample):
 		elif(first < second):
 			binary_string += '0'
 		elif(first == second):
-
-			return '2'
+			binary_string += '2'
 
 	return binary_string
+
+def Brute_Force_One(binstring):
+
+	String_0 = binstring.replace('2','0')
+	if(paritycheck(String_0)):
+		return String_0
+	String_1 = binstring.replace('2','1')
+	if(paritycheck(String_1)):
+		return String_1
+	return False
+
+
+def Brute_Force_Two(binstring):
+
+
+	String_00 = binstring.replace('2','0')
+	if(paritycheck(String_00)):
+		return String_00
+
+	String_01 = binstring.replace('2','0',1).replace('2','1') 
+	if(paritycheck(String_01)):
+		return String_01
+
+	String_10 = binstring.replace('2','1',1).replace('2','0') 
+	if(paritycheck(String_10)):
+		return String_10
+
+	String_11 = binstring.replace('2','1')
+	if(paritycheck(String_11)):
+		return String_11
+	
+	return False
+
+
+
+
 
 def Binary_To_Hex(binstring):
 	tmp = int(binstring,2)
@@ -133,8 +168,12 @@ def Decode_DF17(binstring):
 			return(ICAO24_HEX,-2)
 
 		if(S_WE == 0):
+			S_WE = 1
+		else:
 			S_WE = -1
 		if(S_NS == 0):
+			S_NS = 1
+		else:
 			S_NS = -1
 
 		if(SubType == 1 or SubType == 2):
@@ -142,6 +181,7 @@ def Decode_DF17(binstring):
 			V_NS *= S_NS
 
 			Speed = int(sqrt(V_WE ** 2 + V_NS ** 2))
+			print ICAO24_HEX, V_WE, V_NS
 			
 			Heading = -1 * atan2(V_NS,V_WE) * (360/(2*pi)) + 90
 
