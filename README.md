@@ -18,7 +18,4 @@ After which the program can be run by executing 'Main.py'.
 A huge thanks to [Junzi Sun's ADS-B decoding guide](http://adsb-decode-guide.readthedocs.io/en/latest/). This helped us enormously in easily decoding the received ADS-B messages.
 
 
-Guides on how the complete program was written will follow in this month. After which they will be posted here.
-
-
 This program was made by Rano Veder and Vincent Meijer.
