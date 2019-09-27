@@ -1,3 +1,5 @@
+# This project is by no means a well written program. It was create 4 years ago when I still lacked basic software architecture skills. It does work, but it requires significant effort to understand. Maybe I will update this sometime in the future.
+
 # ADS-B-Decoder
 
 This ADS-B Decoder is developed as a bonus assignment for the class "AE1205, Programming & Scientific Computing in Python" at the TU Delft.
